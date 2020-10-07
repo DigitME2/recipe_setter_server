@@ -2,7 +2,7 @@
 
 A flask server to monitor a production line.
 
-Allows an Android tablet to set a recipe for a production line using the DigitME RecipeSetter app. RFID antennas at the start and end of the line monitor the movement of trays along the line, updating a database accordingly.
+Allows an Android tablet to set a recipe for a production line using the DigitME RecipeSetter app. RFID antennas at the start and end of the line monitor the movement of trays along the line and report back to this server which updates a database accordingly.
 
 Exposes /get_status, /recipe_options and /change_recipe for use with the Android app.
 
