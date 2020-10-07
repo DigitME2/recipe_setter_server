@@ -7,7 +7,9 @@ Allows an Android tablet to set a recipe for a production line using the DigitME
 Exposes /get_status, /recipe_options and /change_recipe for use with the Android app.
 
 Accepts POST requests to /rfid when an accompanying RFID kit picks up a tag. These are currently sent using Speedway Connect.
+
 Example of an RFID request:
+
 [
    {
       "antennaPort":2,
