@@ -4,22 +4,31 @@ import os
 
 class Config(object):
 
-    # Get the database details from environment variables
-    DATABASE_USER = os.environ.get('DATABASE_USER')
-    DATABASE_ADDRESS = os.environ.get('DATABASE_ADDRESS')
-    DATABASE_PORT = os.environ.get('DATABASE_PORT')
-    DATABASE_NAME = os.environ.get('DATABASE_NAME')
-    DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD')
+    # SQL Server
+    # DATABASE_USER = os.environ.get('DATABASE_USER') or "testuser"
+    # DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD') or "testpassword"
+    # DATABASE_SERVER_NAME = os.environ.get('DATABASE_SERVER_NAME') or "DESKTOP\\SQLEXPRESS"
+    # DATABASE_NAME = os.environ.get('DATABASE_NAME') or "test"
+    # params = urllib.parse.quote_plus(f"DRIVER={{SQL Server}};SERVER={DATABASE_SERVER_NAME};DATABASE={DATABASE_NAME};UID={DATABASE_USER};PWD={DATABASE_PASSWORD}")
+    # SQLALCHEMY_DATABASE_URI = "mssql+pyodbc:///?odbc_connect=%s" % params
 
-    SQLALCHEMY_DATABASE_URI = "postgres://{user}:{password}@{address}:{port}/{database}".format(
-        user=DATABASE_USER,
-        password=DATABASE_PASSWORD,
-        address=DATABASE_ADDRESS,
-        port=DATABASE_PORT,
-        database=DATABASE_NAME)
+    # PostgreSQL
+    # DATABASE_USER = os.environ.get('DATABASE_USER') or "postgres"
+    # DATABASE_ADDRESS = os.environ.get('DATABASE_ADDRESS') or "192.168.0.200"
+    # DATABASE_PORT = os.environ.get('DATABASE_PORT') or "5432"
+    # DATABASE_NAME = os.environ.get('DATABASE_NAME') or "test"
+    # DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD') or "testpassword"
+    # SQLALCHEMY_DATABASE_URI = "postgres://{user}:{password}@{address}:{port}/{database}".format(
+    #     user=DATABASE_USER,
+    #     password=DATABASE_PASSWORD,
+    #     address=DATABASE_ADDRESS,
+    #     port=DATABASE_PORT,
+    #     database=DATABASE_NAME)
+
+    # SQLite
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///prod.db"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
     STREAM_LOGGING_LEVEL = logging.DEBUG
     FILE_LOGGING_LEVEL = logging.DEBUG
     FLASK_LOG_FILE = 'logs/log.log'
