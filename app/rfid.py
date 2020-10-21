@@ -65,7 +65,8 @@ def process_rfid_read(antenna_port, rfid_tag):
                                   read_point=antenna.position_name,
                                   tray_status=prior_tray_state,
                                   tray_recipe_name=prior_recipe_name,
-                                  selected_recipe_name=production_line.current_recipe_name)
+                                  selected_recipe_name=production_line.current_recipe_name,
+                                  weight=new_tray_weight)
     db.session.add(transaction)
     db.session.commit()
 
