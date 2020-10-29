@@ -15,8 +15,7 @@ if not os.path.exists('logs'):
 file_handler = RotatingFileHandler(filename=Config.FLASK_LOG_FILE,
                                    maxBytes=Config.ROTATING_LOG_FILE_MAX_BYTES,
                                    backupCount=Config.ROTATING_LOG_FILE_COUNT)
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s'))
+file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 file_handler.setLevel(Config.FILE_LOGGING_LEVEL)
 
 stream_handler = logging.StreamHandler()
@@ -53,5 +52,9 @@ def create_app(config_class=Config):
     @app.before_first_request
     def initial_setup():
         db.create_all()
+
+    @app.route('/')
+    def default():
+        return "Server is running"
 
     return app

@@ -33,18 +33,20 @@ def get_status():
 def recipe_options_api():
     """ Returns a list of recipe options as a list of names e.g. ["recipe1", "recipe2"].
     The list is modified according to the IP of the requesting client"""
-
     all_recipes = Recipes.query.all()
     # Get the production line this device is assigned to
     device_prod_line = ProductionLines.query.filter_by(current_device_ip=request.remote_addr).first()
     if not device_prod_line:
         response = {"recipe_options": ["This device is not assigned to a line"]}
+        current_app.logger.warn(f"Recipe options requested by {request.remote_addr} which is not assigned to a line")
         return response
     # Get the correct recipe list from the recipes table
     if device_prod_line.washing:
         recipe_names = [recipe.recipe_name for recipe in all_recipes if recipe.washing]
+        current_app.logger.debug(f"Recipe options requested by {request.remote_addr} which is assigned to {device_prod_line.line_name} (washing)")
     elif device_prod_line.bagging:
         recipe_names = [recipe.recipe_name for recipe in all_recipes if recipe.bagging]
+        current_app.logger.debug(f"Recipe options requested by {request.remote_addr} which is assigned to {device_prod_line.line_name} (bagging)")
     else:
         recipe_names = []
 
@@ -66,6 +68,7 @@ def change_recipe():
     requested_recipe_name = request.json["recipe"]
     new_recipe = Recipes.query.filter_by(recipe_name=requested_recipe_name).first()
     if not new_recipe:
+        current_app.logger.error(f"Invalid recipe received by {device_ip}")
         return abort(400, {'message': 'invalid recipe'})
 
     # Add the changes and commit to the database
