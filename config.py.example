@@ -31,7 +31,7 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     STREAM_LOGGING_LEVEL = logging.DEBUG
     FILE_LOGGING_LEVEL = logging.DEBUG
-    FLASK_LOG_FILE = 'logs/log.log'
+    FLASK_LOG_FILE = 'logs/server.log'
     ROTATING_LOG_FILE_MAX_BYTES = 1024000
     ROTATING_LOG_FILE_COUNT = 10
     LOG_FORMATTER = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
