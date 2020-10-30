@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 
 from flask import abort, Blueprint, jsonify, request, current_app

@@ -31,12 +31,14 @@ def create_app(config_class=Config):
     #     app.logger.addHandler(handler)
 
     # Add waitress logger
-    waitress_logger = logging.getLogger('waitress')
-    waitress_logger.setLevel(logging.DEBUG)
-    for handler in waitress_logger.handlers:
-        app.logger.addHandler(handler)
+    # waitress_logger = logging.getLogger('waitress')
+    # waitress_logger.setLevel(logging.DEBUG)
+    # for handler in waitress_logger.handlers:
+    #     app.logger.addHandler(handler)
 
     # Set up logging
+    import logging
+    app.logger.removeHandler(default_handler)
     app.logger.setLevel(logging.DEBUG)
     app.logger.addHandler(file_handler)
 
