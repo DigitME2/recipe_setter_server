@@ -1,9 +1,10 @@
 from app import create_app
 from app.extensions import db
-from app.models import ProductionLines, Antennas, Recipes
+from app.models import ProductionLines, Antennas, Recipes, Trays
 
 
 def create_test_db_entries():
+    """ Create fake database entries for a test run"""
     db.create_all()
     recipe1 = Recipes(recipe_name="Recipe 1", default_weight=10, bagging=True, washing=False)
     recipe2 = Recipes(recipe_name="Recipe 2", default_weight=5, bagging=True, washing=False)
@@ -32,7 +33,11 @@ def create_test_db_entries():
     db.session.add(antenna2)
     db.session.commit()
 
+    tray1 = Trays(rfid="E20041026708007026100E9D")
+    db.session.add(tray1)
+    db.session.commit()
 
-app = create_app()
-with app.app_context():
-    create_test_db_entries()
+if __name__ == "__main__":
+    app = create_app()
+    with app.app_context():
+        create_test_db_entries()
