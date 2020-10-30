@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 import requests
 
@@ -12,5 +13,7 @@ except:
 
 url = "http://localhost:8080/rfid"
 post_json = {"tag_reads": [{"antennaPort": antenna_port, "epc": rfid}]}
-x = requests.post(url, json=post_json)
-print(x)
+while True:
+    time.sleep(0.01)
+    x = requests.post(url, json=post_json)
+    print(x)

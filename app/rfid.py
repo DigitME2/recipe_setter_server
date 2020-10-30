@@ -86,6 +86,5 @@ def process_rfid_read(antenna_port, rfid_tag):
     # Edit tray
     tray.current_tray_status = new_tray_status
     tray.current_recipe_name = new_recipe_name
-    tray.created_date = datetime.utcnow()
     tray.current_weight = new_tray_weight
     db.session.commit()
