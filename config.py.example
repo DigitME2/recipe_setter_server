@@ -4,6 +4,8 @@ import os
 
 class Config(object):
 
+    # Remember to delete the SQLite SQLALCHEMY_DATABASE_URI for SQLAlchemy if you use SQL Server or Postgres
+
     # SQL Server
     # DATABASE_USER = os.environ.get('DATABASE_USER') or "testuser"
     # DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD') or "testpassword"
@@ -29,9 +31,10 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = f"sqlite:///prod.db"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    STREAM_LOGGING_LEVEL = logging.DEBUG
-    FILE_LOGGING_LEVEL = logging.DEBUG
+
+    STREAM_LOGGING_LEVEL = logging.DEBUG  # Set this to control the amount of messages in the command window. options: logging.INFO, logging.ERROR
+    FILE_LOGGING_LEVEL = logging.DEBUG  # Set this to control the amount of messages being saved to the log file
     FLASK_LOG_FILE = 'logs/server.log'
-    ROTATING_LOG_FILE_MAX_BYTES = 1024000
-    ROTATING_LOG_FILE_COUNT = 10
+    ROTATING_LOG_FILE_MAX_BYTES = 1024000  # The max file size of the log file before it starts a new file
+    ROTATING_LOG_FILE_COUNT = 10  # The number of log files to create
     LOG_FORMATTER = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')

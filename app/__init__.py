@@ -18,25 +18,27 @@ file_handler = RotatingFileHandler(filename=Config.FLASK_LOG_FILE,
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 file_handler.setLevel(Config.FILE_LOGGING_LEVEL)
 
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(Config.STREAM_LOGGING_LEVEL)
-
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     db.init_app(app)
 
-    # Set up logging
-    app.logger.setLevel(logging.DEBUG)
-    app.logger.removeHandler(default_handler)
-    app.logger.addHandler(stream_handler)
-    app.logger.addHandler(file_handler)
 
     # Add gunicorn logger
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    for handler in gunicorn_logger.handlers:
+    # gunicorn_logger = logging.getLogger('gunicorn.error')
+    # for handler in gunicorn_logger.handlers:
+    #     app.logger.addHandler(handler)
+
+    # Add waitress logger
+    waitress_logger = logging.getLogger('waitress')
+    waitress_logger.setLevel(logging.DEBUG)
+    for handler in waitress_logger.handlers:
         app.logger.addHandler(handler)
+
+    # Set up logging
+    app.logger.setLevel(logging.DEBUG)
+    app.logger.addHandler(file_handler)
 
     print("Logging level:", logging.getLevelName(app.logger.getEffectiveLevel()))
 

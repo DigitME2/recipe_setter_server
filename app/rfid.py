@@ -23,17 +23,19 @@ def rfid_route():
         current_app.logger.debug(f"Received tag read: Port={antenna_port}, epc={epc}")
         if antenna_port is not None and epc is not None:
             process_rfid_read(rfid_tag=epc, antenna_port=antenna_port)
-
+        else:
+            current_app.logger.debug(f"POST request to /rfid does not contain antenna_port or epc")
     response = jsonify({"message": "success"})
     response.status_code = 200
     return response
 
 
 def process_rfid_read(antenna_port, rfid_tag):
+    current_app.logger.debug(f"Processing tag {rfid_tag}")
     antenna = Antennas.query.filter_by(antenna_port=antenna_port).first()
     if hasattr(antenna, 'production_line'):
         production_line = antenna.production_line
-        logging.debug(f"Tray {rfid_tag} scanned on production line")
+        current_app.logger.debug(f"Tray {rfid_tag} scanned on production line {production_line.line_name}")
     else:
         current_app.logger.error(f"Could not find production line for Antenna on port {antenna_port}")
         return
@@ -52,19 +54,21 @@ def process_rfid_read(antenna_port, rfid_tag):
         new_tray_weight = production_line.current_recipe.default_weight
         new_recipe_name = production_line.current_recipe_name
     else:
-        logging.error(f"Antenna {antenna_port} was not assigned to start or end")
+        current_app.logger.error(f"Antenna {antenna_port} was not assigned to start or end")
         return abort(500)
 
     if tray.current_tray_status == new_tray_status:
-        logging.debug(f"Tray {rfid_tag} is already in this position (ie this is a re-read)")
+        current_app.logger.debug(f"Tray {rfid_tag} is already in this position (ie this is a re-read)")
         # Do nothing if the tray is already in this position (i.e. a re-read)
         return
 
         # Print some logging info
     if antenna.start:
-        logging.info(f"Tray {rfid_tag} at start of {production_line.line_name}")
+        current_app.logger.info(f"Tray {rfid_tag} at start of {production_line.line_name}")
     elif antenna.end:
-        logging.info(f"Tray {rfid_tag} at end of {production_line.line_name}")
+        current_app.logger.info(f"Tray {rfid_tag} at end of {production_line.line_name}")
+    else:
+        current_app.logger.warn(f"Antenna not assigned to start or end")
     prior_tray_state = tray.current_tray_status
     prior_recipe_name = tray.current_recipe_name
 
