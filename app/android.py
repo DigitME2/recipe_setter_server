@@ -9,7 +9,6 @@ bp = Blueprint('android', __name__)
 
 @bp.route('/get_status', methods=['GET'])
 def get_status():
-    db.create_all()
     """ Returns a JSON object containing the current recipe and amount of trays passed a production line.
      The production line is found according to the IP of the requesting client"""
 
@@ -17,8 +16,10 @@ def get_status():
     device_ip = request.remote_addr
     prod_line = ProductionLines.query.filter_by(current_device_ip=device_ip).first()
     if not prod_line:
-        abort(403)
+        current_app.logger.warn(f"Recipe options requested by {request.remote_addr} which does not have a production line")
+        return abort(403)
 
+    current_app.logger.debug(f"Status requested by {request.remote_addr} which is assigned to {prod_line.line_name}")
     # Get the relevent data
     current_recipe_name = prod_line.current_recipe_name or "No Recipe"
     trays_since_change = prod_line.trays_since_change or 0
@@ -76,7 +77,6 @@ def change_recipe():
     prod_line.trays_since_change = 0
     prod_line.current_recipe_name = new_recipe.recipe_name
     db.session.commit()
-
     current_app.logger.info(f"Setting recipe to {new_recipe.recipe_name} on line {prod_line.line_name}")
 
     # Send a success response
