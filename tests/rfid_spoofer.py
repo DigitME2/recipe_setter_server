@@ -4,7 +4,7 @@ import time
 
 import requests
 
-rfid = os.environ.get('RFID') or "E20041026708007026100E9D"
+rfid = os.environ.get('RFID') or "test_rfid_epc2"
 try:
     antenna_port = sys.argv[1]
 except:
@@ -14,6 +14,8 @@ except:
 url = "http://localhost:8080/rfid"
 post_json = {"tag_reads": [{"antennaPort": antenna_port, "epc": rfid}]}
 while True:
-    time.sleep(0.01)
     x = requests.post(url, json=post_json)
     print(x)
+    time.sleep(5)
+
+    #"E20041026708007026100E9D"
