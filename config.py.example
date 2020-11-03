@@ -38,3 +38,5 @@ class Config(object):
     ROTATING_LOG_FILE_MAX_BYTES = 1024000  # The max file size of the log file before it starts a new file
     ROTATING_LOG_FILE_COUNT = 10  # The number of log files to create
     LOG_FORMATTER = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+
+    ACCEPT_ANY_RFID = False  # This will create an entry in the ItemLog every time an unknown RFID tag is scanned. Not recommended for regular usage
