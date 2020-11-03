@@ -24,18 +24,6 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     db.init_app(app)
 
-
-    # Add gunicorn logger
-    # gunicorn_logger = logging.getLogger('gunicorn.error')
-    # for handler in gunicorn_logger.handlers:
-    #     app.logger.addHandler(handler)
-
-    # Add waitress logger
-    # waitress_logger = logging.getLogger('waitress')
-    # waitress_logger.setLevel(logging.DEBUG)
-    # for handler in waitress_logger.handlers:
-    #     app.logger.addHandler(handler)
-
     # Set up logging
     import logging
     app.logger.removeHandler(default_handler)
@@ -43,6 +31,9 @@ def create_app(config_class=Config):
     app.logger.addHandler(file_handler)
 
     print("Logging level:", logging.getLevelName(app.logger.getEffectiveLevel()))
+    if Config.ACCEPT_ANY_RFID:
+        print("WARNING: ACCEPT_ANY_RFID is set to True. This will create a new ItemLog entry for ANY rfid tag scanned by a reader")
+        print("This is not recommended for regular usage. It can be set to False in config.py")
 
     from app import android, rfid
     app.register_blueprint(android.bp)
