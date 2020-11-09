@@ -12,11 +12,11 @@ from .extensions import db
 # Set up logging handlers
 if not os.path.exists('logs'):
     os.mkdir('logs')
-file_handler = RotatingFileHandler(filename=Config.FLASK_LOG_FILE,
-                                   maxBytes=Config.ROTATING_LOG_FILE_MAX_BYTES,
-                                   backupCount=Config.ROTATING_LOG_FILE_COUNT)
+file_handler = RotatingFileHandler(filename=getattr(Config, "FLASK_LOG_FILE", "server.log"),
+                                   maxBytes=getattr(Config, "ROTATING_LOG_FILE_MAX_BYTES", 1024000),
+                                   backupCount=getattr(Config, "ROTATING_LOG_FILE_COUNT", 10))
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
-file_handler.setLevel(Config.FILE_LOGGING_LEVEL)
+file_handler.setLevel(getattr(Config, "FILE_LOGGING_LEVEL", logging.INFO))
 
 
 def create_app(config_class=Config):
@@ -31,7 +31,7 @@ def create_app(config_class=Config):
     app.logger.addHandler(file_handler)
 
     print("Logging level:", logging.getLevelName(app.logger.getEffectiveLevel()))
-    if Config.ACCEPT_ANY_RFID:
+    if getattr(Config, "ACCEPT_ANY_RFID", False):
         print("WARNING: ACCEPT_ANY_RFID is set to True. This will create a new ItemLog entry for ANY rfid tag scanned by a reader")
         print("This is not recommended for regular usage. It can be set to False in config.py")
 
