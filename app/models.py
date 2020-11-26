@@ -7,8 +7,8 @@ logger = logging.getLogger('flask.app')
 class Recipes(db.Model):
     __tablename__ = "Recipes"
     id = db.Column(db.Integer, name="ID", primary_key=True)
-    recipe_name = db.Column(db.String(32), name="RecipeName", unique=True)
-    default_weight = db.Column(db.Integer, name="DefaultWeight")
+    recipe_name = db.Column(db.String(32), name="RecipeName", nullable=False, unique=True)
+    default_weight = db.Column(db.Integer, name="DefaultWeight", nullable=False)
     bagging = db.Column(db.Boolean, name="Bagging")
     washing = db.Column(db.Boolean, name="Washing")
 
@@ -22,9 +22,9 @@ class ProductionLines(db.Model):
     bagging = db.Column(db.Boolean, name="Bagging")
     washing = db.Column(db.Boolean, name="Washing")
     current_device_ip = db.Column(db.String(32), unique=True, name="CurrentDeviceIP")
-    current_recipe_name = db.Column(db.String(32), db.ForeignKey("Recipes.RecipeName"), name="CurrentRecipe")
+    current_recipe_name = db.Column(db.String(32), db.ForeignKey("Recipes.RecipeName"), name="CurrentRecipe", nullable=False)
     last_recipe_change = db.Column(db.DateTime, name="LastRecipeChange")
-    trays_since_change = db.Column(db.Integer, name="TraysSinceChange", default=0)
+    trays_since_change = db.Column(db.Integer, name="TraysSinceChange", default=0, nullable=False)
 
     antenna = db.relationship("Antennas", backref="production_line")
 
