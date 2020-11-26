@@ -34,96 +34,71 @@ def rfid_route():
 def process_rfid_read(antenna_port, rfid_tag):
     """ Process a RFID read once understood by the server"""
     current_app.logger.debug(f"Processing tag {rfid_tag}")
+
+    # Read the antenna, production line and tray from the database
     antenna = Antennas.query.filter_by(antenna_port=antenna_port).first()
-    if hasattr(antenna, 'production_line'):
-        production_line = antenna.production_line
-        current_app.logger.debug(f"Tag {rfid_tag} scanned on production line {production_line.line_name}")
-    else:
+    production_line = getattr(antenna, "production_line", None)
+    if not production_line:
         current_app.logger.error(f"Could not find production line for Antenna on port {antenna_port}")
-        return
-
+        return None
+    current_app.logger.debug(f"Tag {rfid_tag} scanned on production line {production_line.line_name}")
     tray = Trays.query.filter_by(rfid=rfid_tag).first()
-    if tray:
-        # Get these values now for the transaction log
-        prior_tray_state = tray.current_tray_status
-        prior_recipe_name = tray.current_recipe_name
-    else:
-        if Config.ACCEPT_ANY_RFID:
-            # Create a new tray with the scanned RFID tag
-            current_app.logger.info(f"Creating new tray for tag {rfid_tag}")
-            tray = Trays(rfid=rfid_tag, created_date=datetime.utcnow())
-            prior_tray_state = "New Tray"
-            prior_recipe_name = None
-            db.session.add(tray)
-            db.session.commit()
-        else:
-            # Do not process RFID tags that are not in the system
-            current_app.logger.warn("Unknown RFID scanned: " + rfid_tag)
-            return
+    if tray is None and Config.ACCEPT_ANY_RFID:
+        # Create a new tray with the scanned RFID tag
+        current_app.logger.info(f"Creating new tray for tag {rfid_tag}")
+        tray = Trays(rfid=rfid_tag, created_date=datetime.utcnow(), current_tray_status="New Tray")
+        db.session.add(tray)
+        db.session.commit()
+    if tray is None:
+        current_app.logger.warn("Unknown RFID scanned: " + rfid_tag)
+        return None
 
+    # Process the operation depending on the type of production line
     if production_line.bagging:
         # RFID has been scanned on a bagging line
-        tray = process_tray_at_bagging(tray, production_line)
-        production_line.trays_since_change += 1
+        new_tray_status = "full tray (bagged)"
+        new_recipe_name = production_line.current_recipe_name
+        new_weight = production_line.current_recipe.default_weight
     elif production_line.washing and antenna.start:
         # RFID has been scanned at the start of a washing line
-        tray = process_tray_at_washing_start(tray, production_line)
+        new_tray_status = f"empty on {antenna.production_line_name}"
+        new_recipe_name = None
+        new_weight = 0
     elif production_line.washing and antenna.end:
         # RFID has been scanned at the end of a washing line
-        tray = process_tray_at_washing_end(tray, production_line)
-        production_line.trays_since_change += 1
+        new_tray_status = "full tray (washed)"
+        new_recipe_name = production_line.current_recipe_name
+        new_weight = production_line.current_recipe.default_weight
     else:
         current_app.logger.error(f"Antenna {antenna_port} was not assigned to start or end, or production line was not set to washing or bagging")
-        return abort(500)
+        return None
 
-    if not tray:
-        # Functions return None if this is a re-read
-        current_app.logger.debug(f"Tray with tag {rfid_tag} is already in this position (ie this is a re-read)")
-        return
+    # Ignore if the tray is already in this position (i.e. a re-read)
+    if tray.current_tray_status == new_tray_status:
+        current_app.logger.debug(f"Tray {tray.rfid} on {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
+        return None
+
+    current_app.logger.info(f"Tray {tray.rfid} on {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
+
+    # Add to the total trays if applicable
+    if antenna.end or production_line.bagging:
+        production_line.trays_since_change += 1
 
     # Create a new transaction
     transaction = TransactionsLog(transaction_datetime=datetime.utcnow(),
-                                  rfid=rfid_tag,
+                                  rfid=tray.rfid,
                                   read_point=antenna.position_name,
-                                  tray_status=prior_tray_state,
-                                  tray_recipe_name=prior_recipe_name,
-                                  selected_recipe_name=production_line.current_recipe_name,
-                                  weight=tray.current_weight)
+                                  line_name=antenna.production_line_name,
+                                  current_tray_recipe=tray.current_recipe_name,
+                                  current_tray_status=tray.current_tray_status,
+                                  current_tray_weight=tray.current_weight,
+                                  transaction_tray_recipe=new_recipe_name,
+                                  transaction_tray_status=new_tray_status,
+                                  transaction_tray_weight=new_weight)
     db.session.add(transaction)
-    db.session.commit()  # This will also save the Tray status, as returned by the processing functions
 
-
-def process_tray_at_washing_start(tray, production_line):
-    new_tray_status = f"empty on {production_line.line_name}"
-    if tray.current_tray_status == new_tray_status:
-        # Return nothing if the tray is already in this position (i.e. a re-read)
-        return None
     tray.current_tray_status = new_tray_status
-    tray.current_recipe_name = None
-    tray.current_weight = 0
-    current_app.logger.info(f"Tray {tray.rfid} at start of {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
-    return tray
+    tray.current_recipe_name = new_recipe_name
+    tray.current_weight = new_weight
+    db.session.commit()
 
-
-def process_tray_at_washing_end(tray, production_line):
-    new_tray_status = "full tray (washed)"
-    if tray.current_tray_status == new_tray_status:
-        # Return nothing if the tray is already in this position (i.e. a re-read)
-        return None
-    tray.current_tray_status = new_tray_status
-    tray.current_recipe_name = production_line.current_recipe_name
-    tray.current_weight = production_line.current_recipe.default_weight
-    current_app.logger.info(f"Tray {tray.rfid} at end of {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
-    return tray
-
-
-def process_tray_at_bagging(tray, production_line):
-    new_tray_status = "full tray (bagged)"
-    if tray.current_tray_status == new_tray_status:
-        # Return nothing if the tray is already in this position (i.e. a re-read)
-        return None
-    tray.current_tray_status = new_tray_status
-    tray.current_recipe_name = production_line.current_recipe_name
-    tray.current_weight = production_line.current_recipe.default_weight
-    current_app.logger.info(f"Tray {tray.rfid} at {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
-    return tray

@@ -35,10 +35,13 @@ class TransactionsLog(db.Model):
     transaction_datetime = db.Column(db.DateTime, name="TransactionDateTime")
     rfid = db.Column(db.String(32), name="RFID")
     read_point = db.Column(db.String(32), name="ReadPoint")
-    tray_recipe_name = db.Column(db.String(32),  db.ForeignKey("Recipes.RecipeName"), name="TrayRecipe")
-    tray_status = db.Column(db.String(32), name="TrayStatus")
-    selected_recipe_name = db.Column(db.String(32), db.ForeignKey("Recipes.RecipeName"), name="SelectedRecipe")
-    weight = db.Column(db.Integer, name="Weight")
+    line_name = db.Column(db.String(32), name="LineName")
+    current_tray_recipe = db.Column(db.String(32), db.ForeignKey("Recipes.RecipeName"), name="CurrentTrayRecipe")
+    current_tray_status = db.Column(db.String(32), name="CurrentTrayStatus")
+    current_tray_weight = db.Column(db.Integer, name="CurrentTrayWeight")
+    transaction_tray_recipe = db.Column(db.String(32), db.ForeignKey("Recipes.RecipeName"), name="TransactionTrayRecipe")
+    transaction_tray_status = db.Column(db.String(32), name="TransactionTrayStatus")
+    transaction_tray_weight = db.Column(db.Integer, name="TransactionTrayWeight")
 
 
 class Trays(db.Model):
