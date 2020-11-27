@@ -56,17 +56,17 @@ def process_rfid_read(antenna_port, rfid_tag):
     # Process the operation depending on the type of production line
     if production_line.bagging:
         # RFID has been scanned on a bagging line
-        new_tray_status = "full tray (bagged)"
-        new_recipe_name = production_line.current_recipe_name
-        new_weight = production_line.current_recipe.default_weight
+        new_tray_status = "empty tray"
+        new_recipe_name = None
+        new_weight = 0
     elif production_line.washing and antenna.start:
         # RFID has been scanned at the start of a washing line
-        new_tray_status = f"empty on {antenna.production_line_name}"
+        new_tray_status = f"Washed Tray"
         new_recipe_name = None
         new_weight = 0
     elif production_line.washing and antenna.end:
         # RFID has been scanned at the end of a washing line
-        new_tray_status = "full tray (washed)"
+        new_tray_status = "Washed Recipe"
         new_recipe_name = production_line.current_recipe_name
         new_weight = production_line.current_recipe.default_weight
     else:
@@ -75,7 +75,7 @@ def process_rfid_read(antenna_port, rfid_tag):
 
     # Ignore if the tray is already in this position (i.e. a re-read)
     if tray.current_tray_status == new_tray_status:
-        current_app.logger.debug(f"Tray {tray.rfid} on {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
+        current_app.logger.debug(f"Re-read - Tray {tray.rfid} on {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
         return None
 
     current_app.logger.info(f"Tray {tray.rfid} on {production_line.line_name}. Current recipe: {production_line.current_recipe_name}")
@@ -100,5 +100,6 @@ def process_rfid_read(antenna_port, rfid_tag):
     tray.current_tray_status = new_tray_status
     tray.current_recipe_name = new_recipe_name
     tray.current_weight = new_weight
+    tray.last_updated = datetime.now()
     db.session.commit()
 
