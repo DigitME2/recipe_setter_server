@@ -57,7 +57,7 @@ def process_rfid_read(antenna_port, rfid_tag):
     if production_line.bagging:
         # RFID has been scanned on a bagging line
         new_tray_status = "Empty Tray"
-        new_tray_recipe = production_line.current_recipe_name
+        new_tray_recipe = None
         transaction_recipe = production_line.current_recipe_name
         new_weight = 0
     elif production_line.washing and antenna.start:
