@@ -51,6 +51,7 @@ class Trays(db.Model):
     current_tray_status = db.Column(db.String(32), name="CurrentTrayStatus")
     current_recipe_name = db.Column(db.String(32), db.ForeignKey("Recipes.RecipeName"), name="CurrentRecipe")
     current_weight = db.Column(db.String(32), name="CurrentWeight")
+    last_line_name = db.Column(db.String(32), name="LastLineName")
     last_updated = db.Column(db.DateTime, name="LastUpdated")
     created_date = db.Column(db.Date, name="CreatedDate")
     destroyed_date = db.Column(db.Date, name="DestroyedDate")
