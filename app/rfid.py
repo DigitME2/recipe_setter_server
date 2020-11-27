@@ -57,24 +57,27 @@ def process_rfid_read(antenna_port, rfid_tag):
     if production_line.bagging:
         # RFID has been scanned on a bagging line
         new_tray_status = "Empty Tray"
-        new_recipe_name = production_line.current_recipe_name
+        new_tray_recipe = production_line.current_recipe_name
+        transaction_recipe = production_line.current_recipe_name
         new_weight = 0
     elif production_line.washing and antenna.start:
         # RFID has been scanned at the start of a washing line
         new_tray_status = "Washed Tray"
-        new_recipe_name = None
+        new_tray_recipe = None
+        transaction_recipe = None
         new_weight = 0
     elif production_line.washing and antenna.end:
         # RFID has been scanned at the end of a washing line
         new_tray_status = "Washed Recipe"
-        new_recipe_name = production_line.current_recipe_name
+        new_tray_recipe = production_line.current_recipe_name
+        transaction_recipe = production_line.current_recipe_name
         new_weight = production_line.current_recipe.default_weight
     else:
         current_app.logger.error(f"Antenna {antenna_port} was not assigned to start or end, or production line was not set to washing or bagging")
         return None
 
     # Ignore if the tray is already in this position (i.e. a re-read)
-    if tray.current_tray_status == new_tray_status:
+    if tray.last_line_name == production_line.line_name:
         current_app.logger.debug(f"Re-read - Tray {tray.rfid} on {production_line.line_name}")
         return None
 
@@ -92,13 +95,13 @@ def process_rfid_read(antenna_port, rfid_tag):
                                   current_tray_recipe=tray.current_recipe_name,
                                   current_tray_status=tray.current_tray_status,
                                   current_tray_weight=tray.current_weight,
-                                  transaction_tray_recipe=new_recipe_name,
+                                  transaction_tray_recipe=transaction_recipe,
                                   transaction_tray_status=new_tray_status,
                                   transaction_tray_weight=new_weight)
     db.session.add(transaction)
 
     tray.current_tray_status = new_tray_status
-    tray.current_recipe_name = new_recipe_name
+    tray.current_recipe_name = new_tray_recipe
     tray.current_weight = new_weight
     tray.last_line_name = production_line.line_name
     tray.last_updated = datetime.now()
