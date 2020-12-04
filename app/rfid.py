@@ -77,7 +77,7 @@ def process_rfid_read(antenna_port, rfid_tag):
         return None
 
     # Ignore if the tray is already in this position (i.e. a re-read)
-    if tray.last_line_name == production_line.line_name:
+    if tray.last_line_name == production_line.line_name and tray.current_tray_status == new_tray_status:
         current_app.logger.debug(f"Re-read - Tray {tray.rfid} on {production_line.line_name}")
         return None
 
