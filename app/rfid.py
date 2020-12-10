@@ -38,12 +38,18 @@ def process_rfid_read(antenna_port, rfid_tag, reader_name):
 
     # Read the antenna, production line and tray from the database
     antenna = Antennas.query.filter_by(antenna_port=antenna_port, reader_name=reader_name).first()
+    if not antenna:
+        current_app.logger.error(f"No database entry matching reader \"{reader_name}\" on port {antenna_port}.")
+        return None
+
     production_line = getattr(antenna, "production_line", None)
     if not production_line:
         current_app.logger.error(f"Could not find production line for Antenna on reader \"{reader_name}\" on port {antenna_port}")
         return None
+
     if production_line.current_recipe is None:
         current_app.logger.error(f"No recipe set for production line \"{production_line}\"")
+
     current_app.logger.debug(f"Tag {rfid_tag} scanned on production line {production_line.line_name}")
     tray = Trays.query.filter_by(rfid=rfid_tag).first()
     if tray is None and Config.ACCEPT_ANY_RFID:
