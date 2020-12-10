@@ -14,6 +14,7 @@ def rfid_route():
     """ The point to be posted to by the RFID reader. This request should contain a list called tag_reads. Each read should contain antennaPort and epc"""
     current_app.logger.debug("Received POST request to /rfid")
     reads = request.json["tag_reads"]
+    reader_name = request.json["reader_name"]
     if not reads:
         current_app.logger.debug("POST request to /rfid does not contain tag_reads")
         return abort(400)
@@ -23,7 +24,7 @@ def rfid_route():
         epc = read["epc"]
         current_app.logger.debug(f"Received tag read: Port={antenna_port}, epc={epc}")
         if antenna_port is not None and epc is not None:
-            process_rfid_read(rfid_tag=epc, antenna_port=antenna_port)
+            process_rfid_read(rfid_tag=epc, antenna_port=antenna_port, reader_name=reader_name)
         else:
             current_app.logger.debug(f"POST request to /rfid does not contain antenna_port or epc")
     response = jsonify({"message": "success"})
@@ -31,16 +32,18 @@ def rfid_route():
     return response
 
 
-def process_rfid_read(antenna_port, rfid_tag):
+def process_rfid_read(antenna_port, rfid_tag, reader_name):
     """ Process a RFID read once understood by the server"""
     current_app.logger.debug(f"Processing tag {rfid_tag}")
 
     # Read the antenna, production line and tray from the database
-    antenna = Antennas.query.filter_by(antenna_port=antenna_port).first()
+    antenna = Antennas.query.filter_by(antenna_port=antenna_port, reader_name=reader_name).first()
     production_line = getattr(antenna, "production_line", None)
     if not production_line:
-        current_app.logger.error(f"Could not find production line for Antenna on port {antenna_port}")
+        current_app.logger.error(f"Could not find production line for Antenna on reader \"{reader_name}\" on port {antenna_port}")
         return None
+    if production_line.current_recipe is None:
+        current_app.logger.error(f"No recipe set for production line \"{production_line}\"")
     current_app.logger.debug(f"Tag {rfid_tag} scanned on production line {production_line.line_name}")
     tray = Trays.query.filter_by(rfid=rfid_tag).first()
     if tray is None and Config.ACCEPT_ANY_RFID:
@@ -71,7 +74,7 @@ def process_rfid_read(antenna_port, rfid_tag):
         new_tray_status = "Washed Recipe"
         new_tray_recipe = production_line.current_recipe_name
         transaction_recipe = production_line.current_recipe_name
-        new_weight = production_line.current_recipe.default_weight
+        new_weight = getattr(production_line.current_recipe, "default_weight", 0)
     else:
         current_app.logger.error(f"Antenna {antenna_port} was not assigned to start or end, or production line was not set to washing or bagging")
         return None
@@ -106,4 +109,3 @@ def process_rfid_read(antenna_port, rfid_tag):
     tray.last_line_name = production_line.line_name
     tray.last_updated = datetime.now()
     db.session.commit()
-

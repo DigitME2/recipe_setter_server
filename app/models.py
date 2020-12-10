@@ -60,6 +60,7 @@ class Trays(db.Model):
 class Antennas(db.Model):
     __tablename__ = "Antennas"
     id = db.Column(db.Integer, name="ID", primary_key=True)
+    reader_name = db.Column(db.String(32), name="ReaderName", nullable=False)
     antenna_port = db.Column(db.Integer, name="AntennaPort", nullable=False)
     position_name = db.Column(db.String(32), name="PositionName", unique=True, nullable=False)
     production_line_name = db.Column(db.String(32), db.ForeignKey("ProductionLines.LineName"), name="ProductionLine", nullable=False)

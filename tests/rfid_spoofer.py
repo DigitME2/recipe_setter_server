@@ -12,7 +12,8 @@ except:
     exit()
 
 url = "http://localhost:8080/rfid"
-post_json = {"tag_reads": [{"antennaPort": antenna_port, "epc": rfid}]}
+post_json = {"reader_name": "reader_1",
+             "tag_reads": [{"antennaPort": antenna_port, "epc": rfid}]}
 while True:
     x = requests.post(url, json=post_json)
     print(x)
