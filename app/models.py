@@ -33,6 +33,7 @@ class TransactionsLog(db.Model):
     __tablename__ = "TransactionsLog"
     id = db.Column(db.Integer, name="ID", primary_key=True)
     transaction_datetime = db.Column(db.DateTime, name="TransactionDateTime")
+    last_updated = db.Column(db.DateTime, name="LastUpdated")
     rfid = db.Column(db.String(32), name="RFID")
     read_point = db.Column(db.String(32), name="ReadPoint")
     line_name = db.Column(db.String(32), name="LineName")
@@ -50,7 +51,7 @@ class Trays(db.Model):
     rfid = db.Column(db.String(32), name="RFID")
     current_tray_status = db.Column(db.String(32), name="CurrentTrayStatus")
     current_recipe_name = db.Column(db.String(32), db.ForeignKey("Recipes.RecipeName"), name="CurrentRecipe")
-    current_weight = db.Column(db.String(32), name="CurrentWeight")
+    current_weight = db.Column(db.Integer, name="CurrentWeight")
     last_line_name = db.Column(db.String(32), name="LastLineName")
     last_updated = db.Column(db.DateTime, name="LastUpdated")
     created_date = db.Column(db.Date, name="CreatedDate")

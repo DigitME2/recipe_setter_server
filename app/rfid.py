@@ -55,7 +55,7 @@ def process_rfid_read(antenna_port, rfid_tag, reader_name):
     if tray is None and Config.ACCEPT_ANY_RFID:
         # Create a new tray with the scanned RFID tag
         current_app.logger.info(f"Creating new tray for tag {rfid_tag}")
-        tray = Trays(rfid=rfid_tag, created_date=datetime.utcnow(), current_tray_status="New Tray")
+        tray = Trays(rfid=rfid_tag, created_date=datetime.utcnow().date(), current_tray_status="New Tray")
         db.session.add(tray)
         db.session.commit()
     if tray is None:
@@ -98,6 +98,7 @@ def process_rfid_read(antenna_port, rfid_tag, reader_name):
 
     # Create a new transaction
     transaction = TransactionsLog(transaction_datetime=datetime.utcnow(),
+                                  last_updated=tray.last_updated,
                                   rfid=tray.rfid,
                                   read_point=antenna.position_name,
                                   line_name=production_line.line_name,
